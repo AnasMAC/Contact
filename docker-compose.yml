@@ -1,23 +1,36 @@
+version: "3.9"
+
 services:
-  # The Laravel Application
-  www:
+  app:
     build: .
     container_name: laravel_app
     ports:
       - "8080:80"
     volumes:
-      - .:/var/www/html:z  # The :z is critical for Fedora/SELinux
+      - .:/var/www/html:z
+      # Volume anonyme pour vendor (évite l’écrasement sous Windows)
+      - /var/www/html/vendor
     environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html/public
+      APACHE_DOCUMENT_ROOT: /var/www/html/public
     depends_on:
       - db
     command: >
-      sh -c "until php artisan db:monitor > /dev/null 2>&1; do echo 'Waiting for DB...'; sleep 1; done; php artisan migrate --force; apache2-foreground"
-  # The Database
+      sh -c "
+        composer dump-autoload --optimize &&
+        php artisan package:discover --ansi &&
+        if [ ! -f .env ]; then cp .env.example .env; fi &&
+        php artisan key:generate --no-interaction || true &&
+        until php artisan migrate --force; do
+          echo 'Waiting for DB...';
+          sleep 2;
+        done &&
+        apache2-foreground
+      "
+
   db:
     image: mariadb:10.6
     container_name: laravel_db
-    restart: always
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: laravel
