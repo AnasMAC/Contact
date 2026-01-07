@@ -3,7 +3,7 @@ version: "3.9"
 services:
   app:
     build: .
-    container_name: laravel_app
+    container_name: lapp
     ports:
       - "8080:80"
     volumes:
@@ -29,7 +29,7 @@ services:
 
   db:
     image: mariadb:10.6
-    container_name: laravel_db
+    container_name: ldb
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root

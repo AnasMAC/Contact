@@ -1,0 +1,15 @@
+# Définition des étapes du pipeline
+stages:
+  - build   # Construction des images Docker
+
+# Étape 2 : Vérifier que le build Docker fonctionne
+docker-build-test:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind # Docker-in-Docker : permet de lancer Docker à l'intérieur de GitLab
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    # On vérifie que docker-compose arrive à construire les images sans erreur
+    - docker compose build
