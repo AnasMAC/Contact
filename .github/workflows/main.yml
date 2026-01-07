@@ -1,15 +1,19 @@
-# Définition des étapes du pipeline
-stages:
-  - build   # Construction des images Docker
+# .github/workflows/main.yml
+name: CI
 
-# Étape 2 : Vérifier que le build Docker fonctionne
-docker-build-test:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind # Docker-in-Docker : permet de lancer Docker à l'intérieur de GitLab
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  script:
-    # On vérifie que docker-compose arrive à construire les images sans erreur
-    - docker compose build
+# Trigger: Run on push or pull request
+on: [push, pull_request]
+
+jobs:
+  docker-build-test:
+    # Instead of 'image: docker:latest', we use the standard VM which has Docker installed
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout the code (Mandatory in GitHub Actions, unlike GitLab)
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Build with Docker Compose
+      - name: Build Docker images
+        run: docker compose build
